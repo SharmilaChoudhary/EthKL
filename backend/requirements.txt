@@ -1,0 +1,16 @@
+Flask==2.2.3
+Flask_Cors==4.0.0
+flask_mongoengine==1.0.0
+Flask_RESTful==0.3.10
+flask-jwt-extended
+mongoengine==0.27.0
+pymongo==4.5.0
+python-dotenv==1.0.0
+werkzeug==2.2.3
+gunicorn>=20.0
+cloudinary==1.38.0
+langchain_google_genai
+googletrans==4.0.0rc1
+Flask-Mail>=0.9.1
+httpx>=0.13.3
+twilio>=6.64.0
