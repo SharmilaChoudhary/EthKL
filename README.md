@@ -1,6 +1,6 @@
 
 
-# 🚀 WorldCommunity: Engage with your Community with simple clicks
+# 🚀 WorldCommunity: Engage with your Community with simple clicks and get rewarded
 
 WorldCommunity is a cutting-edge platform designed to revolutionize the community engagement and marketing landscape. Our blockchain-based solution allows companies to create and manage tweet promotion campaigns with unparalleled transparency and accountability. With WorldCommunity, influencers, users or communities (you name it) can participate in campaigns, promote content, and earn rewards seamlessly.
 
