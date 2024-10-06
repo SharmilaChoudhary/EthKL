@@ -6,8 +6,9 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { ScaleLoader } from "react-spinners";
 import { useToast } from "@/components/ui/use-toast";
-
+import { IDKitWidget, VerificationLevel, ISuccessResult } from '@worldcoin/idkit';
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { decodeAbiParameters, parseAbiParameters } from 'viem'
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,8 @@ import { set } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useRef } from "react";
-
+import { ethers } from "ethers";
+import Web3Modal from 'web3modal';
 import axios from "axios";
 import TwitterPreview from "@/components/TwitterPreview";
 import Timer from "@/components/Timer";
@@ -89,7 +91,7 @@ const CampaignDetails = ({ params }: { params: { campaignId: string } }) => {
   const [steps, setSteps] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [twitterQuoteText, setTwitterQuoteText] = useState<string>("");
-
+ const[ proofbool, setProofbool] = useState<boolean>(true)
   const quoteTextRef = useRef("");
   const { account } = useWallet();
 
@@ -128,7 +130,207 @@ const CampaignDetails = ({ params }: { params: { campaignId: string } }) => {
       console.error(error);
     }
   };
-
+  const onSuccess = async (result: ISuccessResult) => {
+    console.log(result);
+    const contractAddress = "0x947D83a61Be182A38f6570459bfA121295d7Fd1c";
+    const contractAbi = [
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "tokenAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "poolAmount",
+				"type": "uint256"
+			}
+		],
+		"name": "createCampaign",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "tokenAddress",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "campaignId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address[]",
+				"name": "userAddresses",
+				"type": "address[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "likes",
+				"type": "uint256[]"
+			}
+		],
+		"name": "distributeRewardsBatch",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "contract IWorldID",
+				"name": "_worldId",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_appId",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_actionId",
+				"type": "string"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "nullifierHash",
+				"type": "uint256"
+			}
+		],
+		"name": "DuplicateNullifier",
+		"type": "error"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "nullifierHash",
+				"type": "uint256"
+			}
+		],
+		"name": "Verified",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "signal",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "root",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "nullifierHash",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256[8]",
+				"name": "proof",
+				"type": "uint256[8]"
+			}
+		],
+		"name": "verifyAndParticipate",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "campaignCounter",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "campaigns",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "creator",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "poolAmount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "exists",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "campaignId",
+				"type": "uint256"
+			}
+		],
+		"name": "getCampaign",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+         const web3Modal = new Web3Modal();
+      const connection = await web3Modal.connect();
+        const provider = new ethers.providers.Web3Provider(connection);
+       const signer = await provider.getSigner();
+    const contract = new ethers.Contract(contractAddress, contractAbi, signer);
+    const response = await contract.verifyAndParticipate("0x4CbEe7aD42d33e9D3B41e8b6FAcA2f6f173C8A94", BigInt(result!.merkle_root), BigInt(result!.nullifier_hash), decodeAbiParameters(
+						parseAbiParameters('uint256[8]'),
+						result!.proof as `0x${string}`
+					)[0]);
+    setProofbool(false)
+  }
   const handlePost = async () => {
     setLoading(true);
     const myHeaders = new Headers();
@@ -198,38 +400,26 @@ const CampaignDetails = ({ params }: { params: { campaignId: string } }) => {
       redirect: "follow" as RequestRedirect,
     };
 
-    try {
-      const response = await fetch(
-        "http://localhost:5000/quote-tweet",
-        requestOptions
-      );
-      const result = await response.json();
-      console.log(result);
+    // try {
+    //   const response = await fetch(
+    //     "http://127.0.0.1:5000/quote-tweet",
+    //     requestOptions
+    //   );
+    //   const result = await response.json();
+    //   console.log(result);
 
-      if (!result.error) {
-        toast({
-          description: result.msg,
-        });
+      // if (!result.error) {
+      //   toast({
+      //     description: result.msg,
+      //   });
         participatePost(
-          result.tweet_id,
+          "1805067332194386114",
           campaignDetails?.task?.campaign_id ?? "",
-          account?.address ?? ""
+          "0xe872aB4c7e41eE9CDa5E45D73Fc53a6108f0aedE"
         );
-      } else {
-        setLoading(false);
-        toast({
-          variant: "destructive",
-          description: result.msg,
-        });
-      }
-    } catch (error) {
+    
       setLoading(false);
-      console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Error while posting on Twitter.",
-      });
-    }
+      
   };
 
   const handleTwitterWithMediaPost = async () => {
@@ -353,34 +543,34 @@ const CampaignDetails = ({ params }: { params: { campaignId: string } }) => {
       body: raw,
     };
 
-    try {
-      const response = await fetch(
-        "http://localhost:5000/campaign/add_participant",
-        requestOptions
-      );
-      const result = await response.json();
+    
+    //   const response = await fetch(
+    //     "http://127.0.0.1:5000/campaign/add_participant",
+    //     requestOptions
+    //   );
+    //   const result = await response.json();
 
-      if (!result.error) {
-        setLoading(false);
-        setSteps(1);
-        toast({
-          description: result.data,
-        });
-      } else {
-        setLoading(false);
-        toast({
-          variant: "destructive",
-          description: result.data,
-        });
-      }
-    } catch (error) {
-      setLoading(false);
-      console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Error while storing participant details.",
-      });
-    }
+    //   if (!result.error) {
+    //     setLoading(false);
+    //     setSteps(1);
+    //     toast({
+    //       description: result.data,
+    //     });
+    //   } else {
+    //     setLoading(false);
+    //     toast({
+    //       variant: "destructive",
+    //       description: result.data,
+    //     });
+    //   }
+    // } catch (error) {
+    //   setLoading(false);
+    //   console.error(error);
+    //   toast({
+    //     variant: "destructive",
+    //     description: "Error while storing participant details.",
+    //   });
+    
   };
 
   const dialogContent = [
@@ -535,9 +725,11 @@ const CampaignDetails = ({ params }: { params: { campaignId: string } }) => {
       ),
       footer: (
         <div className="flex justify-center w-full gap-x-[10px]">
+
           <Button
             type="submit"
             className="px-[40px] bg-blue-500 text-[16px] font-[400] hover:bg-blue-600"
+
             onClick={() => {
               if (campaignDetails?.task?.platform == "instagram") {
                 handlePost();
@@ -555,9 +747,11 @@ const CampaignDetails = ({ params }: { params: { campaignId: string } }) => {
               }
             }}
           >
+     
             {loading ? (
               <ScaleLoader color="#fff" loading={loading} />
             ) : (
+                
               `Post on ${
                 campaignDetails?.task?.platform == "instagram"
                   ? "Instagram"
@@ -701,11 +895,27 @@ const CampaignDetails = ({ params }: { params: { campaignId: string } }) => {
                         </p>
                       </div>
                     </div>
-                    <DialogTrigger asChild>
-                      <Button className="bg-[#3770ff] hover:bg-[#2368fb] rounded-[10px] mr-[10px] px-[40px] font-bold text-[16px]">
-                        See Participants
-                      </Button>
-                    </DialogTrigger>
+                      {
+                        (proofbool ? (<IDKitWidget
+                          app_id="app_staging_d81bad526458fcdc7a16f82c874f7d8b"
+                          action="chance"
+                          // On-chain only accepts Orb verifications
+                          verification_level={VerificationLevel.Orb}
+                          // handleVerify={verifyProof}
+                          onSuccess={onSuccess}>
+                          {({ open }) => (
+                            <Button className="bg-[#3770ff] hover:bg-[#2368fb] rounded-[10px] mr-[10px] ml-2 px-[30px] font-bold text-[16px]" onClick={open}>
+                              Verify with World ID
+                            </Button>
+                          )}
+                        </IDKitWidget>) : (<DialogTrigger asChild>
+                          <Button className="bg-[#3770ff] hover:bg-[#2368fb] rounded-[10px] mr-[10px] px-[40px] font-bold text-[16px]">
+                            See Participants
+                          </Button>
+                        </DialogTrigger>))
+                      }   
+                                 
+
                   </div>
                 </CardFooter>
               </Card>
