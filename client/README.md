@@ -64,7 +64,9 @@ To get started with WorldCommunity, ensure you have the following installed on y
 - ***Data Privacy***: Participant and company data is handled with the utmost privacy and security.<br>
 <br>
 
-
+## Contracts Deployed on
+- ***Scroll Sepolia*** : [https://sepolia.scrollscan.com/address/0x4E0E06726521396edF446967d8E697c15F58AC9C](https://sepolia.scrollscan.com/address/0x4E0E06726521396edF446967d8E697c15F58AC9C)
+- ***Manta Network*** : [https://pacific-explorer.sepolia-testnet.manta.network/address/0xb591d3D7e0460C3366e8D49709a644e6E8d04E22](https://pacific-explorer.sepolia-testnet.manta.network/address/0xb591d3D7e0460C3366e8D49709a644e6E8d04E22)
 
 📜 License
 This project is licensed under the MIT License - see the LICENSE file for details.
